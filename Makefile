@@ -436,6 +436,7 @@ include $(SRC_PATH)/tests/Makefile.include
 all: $(DOCS) $(TOOLS) $(HELPERS-y) recurse-all modules
 
 qemu-version.h: FORCE
+	git diff HEAD
 	$(call quiet-command, \
 		(cd $(SRC_PATH); \
 		if test -n "$(PKGVERSION)"; then \
