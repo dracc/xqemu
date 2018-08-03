@@ -436,8 +436,7 @@ include $(SRC_PATH)/tests/Makefile.include
 all: $(DOCS) $(TOOLS) $(HELPERS-y) recurse-all modules
 
 qemu-version.h: FORCE
-	mkdir -p dist
-	git diff-index HEAD &>dist/diff-index
+	echo "#..." >> Makefile
 	$(call quiet-command, \
 		(cd $(SRC_PATH); \
 		if test -n "$(PKGVERSION)"; then \
@@ -445,7 +444,7 @@ qemu-version.h: FORCE
 		else \
 			if test -d .git; then \
 				pkgvers=$$(git rev-parse --short HEAD 2>/dev/null | tr -d '\n');\
-				if ! git diff-index --quiet HEAD &>/dev/null; then \
+				if ! git diff --quiet HEAD >/dev/null 2>&1; then \
 					pkgvers="$${pkgvers}-dirty"; \
 				fi; \
 			fi; \
