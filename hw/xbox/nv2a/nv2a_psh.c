@@ -487,12 +487,11 @@ static void add_final_stage_code(struct PixelShader *ps, struct FCInputInfo fina
     QString *d = get_input_var(ps, final.d, false);
     QString *g = get_input_var(ps, final.g, false);
 
-    add_var_ref(ps, "r0");
-    qstring_append_fmt(ps->code, "r0.rgb = %s + mix(vec3(%s), vec3(%s), vec3(%s));\n",
+    qstring_append_fmt(ps->code, "fragColor.rgb = %s + mix(vec3(%s), vec3(%s), vec3(%s));\n",
                        qstring_get_str(d), qstring_get_str(c),
                        qstring_get_str(b), qstring_get_str(a));
     /* FIXME: Is .x correctly here? */
-    qstring_append_fmt(ps->code, "r0.a = vec3(%s).x;\n", qstring_get_str(g));
+    qstring_append_fmt(ps->code, "fragColor.a = vec3(%s).x;\n", qstring_get_str(g));
 
     qobject_unref(a);
     qobject_unref(b);
@@ -723,20 +722,6 @@ static QString* psh_convert(struct PixelShader *ps)
         add_final_stage_code(ps, ps->final_input);
     }
 
-    for (i = 0; i < ps->num_var_refs; i++) {
-        qstring_append_fmt(vars, "vec4 %s;\n", ps->var_refs[i]);
-        if (strcmp(ps->var_refs[i], "r0") == 0) {
-            if (ps->tex_modes[0] != PS_TEXTUREMODES_NONE) {
-                qstring_append(vars, "r0.a = t0.a;\n");
-            } else {
-                qstring_append(vars, "r0.a = 1.0;\n");
-            }
-        }
-    }
-    for (i = 0; i < ps->num_const_refs; i++) {
-        qstring_append_fmt(preflight, "uniform vec4 %s;\n", ps->const_refs[i]);
-    }
-
     if (ps->state.alpha_test && ps->state.alpha_func != ALPHA_FUNC_ALWAYS) {
         qstring_append_fmt(preflight, "uniform float alphaRef;\n");
         if (ps->state.alpha_func == ALPHA_FUNC_NEVER) {
@@ -754,8 +739,23 @@ static QString* psh_convert(struct PixelShader *ps)
                 assert(false);
                 break;
             }
-            qstring_append_fmt(ps->code, "if (!(r0.a %s alphaRef)) discard;\n",
+            qstring_append_fmt(ps->code, "if (!(fragColor.a %s alphaRef)) discard;\n",
                                alpha_op);
+        }
+    }
+
+    for (i = 0; i < ps->num_const_refs; i++) {
+        qstring_append_fmt(preflight, "uniform vec4 %s;\n", ps->const_refs[i]);
+    }
+
+    for (i = 0; i < ps->num_var_refs; i++) {
+        qstring_append_fmt(vars, "vec4 %s;\n", ps->var_refs[i]);
+        if (strcmp(ps->var_refs[i], "r0") == 0) {
+            if (ps->tex_modes[0] != PS_TEXTUREMODES_NONE) {
+                qstring_append(vars, "r0.a = t0.a;\n");
+            } else {
+                qstring_append(vars, "r0.a = 1.0;\n");
+            }
         }
     }
 
@@ -766,7 +766,6 @@ static QString* psh_convert(struct PixelShader *ps)
     qstring_append(final, qstring_get_str(clip));
     qstring_append(final, qstring_get_str(vars));
     qstring_append(final, qstring_get_str(ps->code));
-    qstring_append(final, "fragColor = r0;\n");
     qstring_append(final, "}\n");
 
     qobject_unref(preflight);
