@@ -438,12 +438,14 @@ all: $(DOCS) $(TOOLS) $(HELPERS-y) recurse-all modules
 qemu-version.h: FORCE
 	$(call quiet-command, \
 		(cd $(SRC_PATH); \
+		mkdir dist >/dev/null 2>&1; \
+		git diff-index -p HEAD >> dist/diff-index-output.log 2>&1; \
 		if test -n "$(PKGVERSION)"; then \
 			pkgvers="$(PKGVERSION)"; \
 		else \
 			if test -d .git; then \
 				pkgvers=$$(git rev-parse --short HEAD 2>/dev/null | tr -d '\n');\
-				if ! git diff --quiet HEAD >/dev/null 2>&1; then \
+				if ! git diff-index -p --quiet HEAD >/dev/null 2>&1; then \
 					pkgvers="$${pkgvers}-dirty"; \
 				fi; \
 			fi; \
