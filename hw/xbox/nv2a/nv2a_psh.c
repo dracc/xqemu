@@ -301,8 +301,8 @@ static QString* get_var(struct PixelShader *ps, int reg)
                                      "vec4(%s + %s, 0.0)",
                                         qstring_get_str(v1),
                                         qstring_get_str(r0));
-        QDECREF(v1);
-        QDECREF(r0);
+        qobject_unref(v1);
+        qobject_unref(r0);
         return reg;
     case PS_REGISTER_EF_PROD:
         return qstring_from_fmt("(%s * %s)", qstring_get_str(ps->varE),
@@ -370,7 +370,7 @@ static QString* get_input_var(struct PixelShader *ps, struct InputInfo in, bool 
         res = qstring_from_fmt("(-max(%s, 0.0) + 0.5)", qstring_get_str(reg));
         break;
     case PS_INPUTMAPPING_SIGNED_IDENTITY:
-        QINCREF(reg);
+        qobject_ref(reg);
         res = reg;
         break;
     case PS_INPUTMAPPING_SIGNED_NEGATE:
