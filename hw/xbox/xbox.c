@@ -53,7 +53,8 @@
 
 #define MAX_IDE_BUS 2
 
-// XBOX_TODO: Should be passed in through configuration
+#define EEPROM_SIZE 256
+
 /* bunnie's eeprom */
 const uint8_t default_eeprom[] = {
     0xe3, 0x1c, 0x5c, 0x23, 0x6a, 0x58, 0x68, 0x37,
@@ -228,12 +229,10 @@ static void xbox_memory_init(PCMachineState *pcms,
 uint8_t *load_eeprom(void)
 {
     char *filename;
-    int fd;
     int rc;
     int eeprom_file_size;
-    const int eeprom_size = 256;
 
-    uint8_t *eeprom_data = g_malloc(eeprom_size);
+    uint8_t *eeprom_data = g_malloc(EEPROM_SIZE);
 
     const char *eeprom_file = object_property_get_str(qdev_get_machine(),
                                                       "eeprom", NULL);
@@ -242,10 +241,10 @@ uint8_t *load_eeprom(void)
         assert(filename);
 
         eeprom_file_size = get_image_size(filename);
-        if (eeprom_size != eeprom_file_size) {
+        if (EEPROM_SIZE != eeprom_file_size) {
             fprintf(stderr,
                     "qemu: EEPROM file size != %d bytes. (Is %d bytes)\n",
-                    eeprom_size, eeprom_file_size);
+                    EEPROM_SIZE, eeprom_file_size);
             g_free(filename);
             exit(1);
             return NULL;
@@ -259,8 +258,8 @@ uint8_t *load_eeprom(void)
             return NULL;
         }
 
-        rc = read(fd, eeprom_data, eeprom_size);
-        if (rc != eeprom_size) {
+        rc = read(fd, eeprom_data, EEPROM_SIZE);
+        if (rc != EEPROM_SIZE) {
             fprintf(stderr, "qemu: Could not read the full EEPROM file.\n");
             close(fd);
             g_free(filename);
@@ -271,7 +270,7 @@ uint8_t *load_eeprom(void)
         close(fd);
         g_free(filename);
     } else {
-        memcpy(eeprom_data, default_eeprom, eeprom_size);
+        memcpy(eeprom_data, default_eeprom, EEPROM_SIZE);
     }
     return eeprom_data;
 }

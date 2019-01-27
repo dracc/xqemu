@@ -33,6 +33,7 @@ typedef struct SMBusEEPROMDevice {
     SMBusDevice smbusdev;
     void *data;
     uint8_t offset;
+    char* filepath;
 } SMBusEEPROMDevice;
 
 static void eeprom_quick_cmd(SMBusDevice *dev, uint8_t read)

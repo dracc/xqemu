@@ -48,6 +48,7 @@ typedef struct XboxMachineState {
     char *bootrom;
     char *eeprom;
     bool short_animation;
+    int eeprom_fd = -1;
 } XboxMachineState;
 
 typedef struct XboxMachineClass {
